@@ -7,7 +7,7 @@ class HTMLNode:
         self.children = children
         self.props = props
 
-    # method to convert the HTMLNode object into html
+    # method to convert the HTMLNode object into html (to be implemented by subclass)
     def to_html(self):
         raise NotImplementedError("to_html method not implemented") 
     
@@ -30,3 +30,26 @@ class HTMLNode:
     # method to return a string representation of the HTMLNode object
     def __repr__(self):
         return f"HTMLNode({self.tag}, {self.value}, children: {self.children}, {self.props})"
+
+# subclass of HTMLNode representing a leaf node in an html document tree
+class LeafNode(HTMLNode):
+    # constructor to initialize a LeafNode object with attributes (tag, value, and properties)
+    def __init__(self, tag, value, props=None):
+        super().__init__(tag, value, None, props)
+
+    # method to convert the LeafNode object into html
+    def to_html(self):
+        # if the LeafNode object has no value, raise an exception with an message
+        if self.value is None:
+            raise ValueError("invalid HTML: no value")
+        
+        # if the LeafNode object has no tag, return just the value
+        if self.tag is None:
+            return self.value
+        
+        # return the rendered html string
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+    
+    # method to return a string representation of the LeafNode object
+    def __repr__(self):
+        return f"LeafNode({self.tag}, {self.value}, {self.props})"
