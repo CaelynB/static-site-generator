@@ -53,3 +53,33 @@ class LeafNode(HTMLNode):
     # method to return a string representation of the LeafNode object
     def __repr__(self):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
+
+# subclass of HTMLNode representing a parent node in an html document tree
+class ParentNode(HTMLNode):
+    # constructor to initialize a ParentNode object with attributes (tag, children, and properties)
+    def __init__(self, tag, children, props=None):
+        super().__init__(tag, None, children, props)
+
+    # method to convert the ParentNode object into html
+    def to_html(self):
+        # if the ParentNode object has no tag, raise an exception with an message
+        if self.tag is None:
+            raise ValueError("invalid HTML: no tag")
+        
+        # if the ParentNode object has no children, raise an exception with an message
+        if self.children is None:
+            raise ValueError("invalid HTML: no children")
+        
+        # initialize an empty string to hold the rendered html of the child nodes
+        child_html = ""
+        
+        # for each child node in the children list, recursively call its to_html method and append the result to the child_html string
+        for child in self.children:
+            child_html += child.to_html()
+
+        # return the rendered html string
+        return f"<{self.tag}{self.props_to_html()}>{child_html}</{self.tag}>"
+
+    # method to return a string representation of the ParentNode object
+    def __repr__(self):
+        return f"ParentNode({self.tag}, children: {self.children}, {self.props})"
