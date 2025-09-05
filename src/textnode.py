@@ -1,5 +1,6 @@
 from enum import Enum
 from htmlnode import LeafNode
+import re
 
 # enum representing different types of text formatting
 class TextType(Enum):
@@ -88,3 +89,25 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
     # return the final list of new nodes
     return new_nodes
+
+# function to extract markdown image syntax from a string
+def extract_markdown_images(text):
+    # regex pattern to match markdown image syntax: ![alt text](url)
+    pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
+
+    # find all matches of the pattern in the text
+    matches = re.findall(pattern, text)
+
+    # return a list of (alt_text, url) tuples for each match
+    return matches
+
+# function to extract markdown link syntax from a string
+def extract_markdown_links(text):
+    # regex pattern to match markdown link syntax: [link text](url)
+    pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
+
+    # find all matches of the pattern in the text
+    matches = re.findall(pattern, text)
+
+    # return a list of (link_text, url) tuples for each match
+    return matches

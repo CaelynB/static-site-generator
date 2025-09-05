@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 
 # unit tests for the TextNode class
 class TestTextNode(unittest.TestCase):
@@ -173,6 +173,70 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         node = TextNode("This is **bold text", TextType.PLAIN_TEXT)
         with self.assertRaises(ValueError):
             split_nodes_delimiter([node], "**", TextType.BOLD_TEXT)
+
+# unit tests for the extract_markdown_images function
+class TestExtractMarkdownImage(unittest.TestCase):
+    # method to test extraction of a single markdown image
+    def test_single_image(self):
+        matches = extract_markdown_images("This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)")
+        expected = [("image", "https://i.imgur.com/zjjcJKZ.png")]
+        self.assertListEqual(expected, matches)
+
+    # method to test extraction of multiple markdown images
+    def test_multiple_images(self):
+        matches = extract_markdown_images("![image](https://i.imgur.com/zjjcJKZ.png) and ![image](https://i.imgur.com/zjjcJKZ.png)")
+        expected = [
+            ("image", "https://i.imgur.com/zjjcJKZ.png"),
+            ("image", "https://i.imgur.com/zjjcJKZ.png")
+        ]
+        self.assertListEqual(expected, matches)
+
+    # method to test that no images are extracted from text without images
+    def test_text_without_images(self):
+        matches = extract_markdown_images("This has no images.")
+        expected = []
+        self.assertListEqual(expected, matches)
+
+    # method to test that malformed image syntax is ignored
+    def test_ignores_malformed_image(self):
+        matches = extract_markdown_images("![alt text](missing-parenthesis")
+        expected = []
+        self.assertListEqual(expected, matches)
+
+# unit tests for the extract_markdown_links function
+class TestExtractMarkdownLinks(unittest.TestCase):
+    # method to test extraction of a single markdown link
+    def test_single_link(self):
+        matches = extract_markdown_links("This is text with a [link](https://boot.dev)")
+        expected = [("link", "https://boot.dev")]
+        self.assertListEqual(expected, matches)
+
+    # method to test extraction of multiple markdown links
+    def test_multiple_links(self):
+        matches = extract_markdown_links("This is text with a [link](https://boot.dev) and [another link](https://blog.boot.dev)")
+        expected = [
+            ("link", "https://boot.dev"),
+            ("another link", "https://blog.boot.dev"),
+        ]
+        self.assertListEqual(expected, matches)
+
+    # method to test that no links are extracted from text without links
+    def test_text_without_links(self):
+        matches = extract_markdown_links("Nothing to link here.")
+        expected = []
+        self.assertListEqual(expected, matches)
+
+    # method to test that image syntax is ignored when extracting links
+    def test_ignores_image_links(self):
+        matches = extract_markdown_links("![image](https://i.imgur.com/zjjcJKZ.png)")
+        expected = []
+        self.assertListEqual(expected, matches)
+
+    # method to test that malformed link syntax is ignored
+    def test_ignores_malformed_link(self):
+        matches = extract_markdown_links("[broken](missing-parenthesis")
+        expected = []
+        self.assertListEqual(expected, matches)
 
 if __name__ == "__main__":
     unittest.main()
