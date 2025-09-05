@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
 
 # unit tests for the TextNode class
 class TestTextNode(unittest.TestCase):
@@ -92,6 +92,87 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         node = TextNode("This is an invalid text type", "invalid_type")
         with self.assertRaises(ValueError):
             text_node_to_html_node(node)
+
+# unit tests for the split_nodes_delimiter function
+class TestSplitNodesDelimiter(unittest.TestCase):
+    # method to test splitting a TextNode with a bold delimiter
+    def test_bold_delimiter(self):
+        node = TextNode("This is **bold** text", TextType.PLAIN_TEXT)
+        result = split_nodes_delimiter([node], "**", TextType.BOLD_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("bold", TextType.BOLD_TEXT),
+            TextNode(" text", TextType.PLAIN_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test splitting a TextNode with a double bold delimiter
+    def test_double_bold_delimiter(self):
+        node = TextNode("This is **bold** and **more bold** text", TextType.PLAIN_TEXT)
+        result = split_nodes_delimiter([node], "**", TextType.BOLD_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("bold", TextType.BOLD_TEXT),
+            TextNode(" and ", TextType.PLAIN_TEXT),
+            TextNode("more bold", TextType.BOLD_TEXT),
+            TextNode(" text", TextType.PLAIN_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test splitting a TextNode with a multiword bold delimiter
+    def test_multiword_bold_delimiter(self):
+        node = TextNode("This is **bold text**", TextType.PLAIN_TEXT)
+        result = split_nodes_delimiter([node], "**", TextType.BOLD_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("bold text", TextType.BOLD_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test splitting a TextNode with a italic delimiter
+    def test_italic_delimiter(self):
+        node = TextNode("This is _italic_ text", TextType.PLAIN_TEXT)
+        result = split_nodes_delimiter([node], "_", TextType.ITALIC_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("italic", TextType.ITALIC_TEXT),
+            TextNode(" text", TextType.PLAIN_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test splitting a TextNode with a bold and italic delimiter
+    def test_bold_and_italic_delimiter(self):
+        node = [
+            TextNode("This is **bold** and ", TextType.PLAIN_TEXT),
+            TextNode("_italic_ text", TextType.PLAIN_TEXT)
+        ]
+        result = split_nodes_delimiter(node, "**", TextType.BOLD_TEXT)
+        result = split_nodes_delimiter(result, "_", TextType.ITALIC_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("bold", TextType.BOLD_TEXT),
+            TextNode(" and ", TextType.PLAIN_TEXT),
+            TextNode("italic", TextType.ITALIC_TEXT),
+            TextNode(" text", TextType.PLAIN_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test splitting a TextNode with a code delimiter
+    def test_code_delimiter(self):
+        node = TextNode("This is `code` text", TextType.PLAIN_TEXT)
+        result = split_nodes_delimiter([node], "`", TextType.CODE_TEXT)
+        expected = [
+            TextNode("This is ", TextType.PLAIN_TEXT),
+            TextNode("code", TextType.CODE_TEXT),
+            TextNode(" text", TextType.PLAIN_TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    # method to test that splitting a TextNode with an unmatched delimiter raises a ValueError
+    def test_unmatched_delimiter(self):
+        node = TextNode("This is **bold text", TextType.PLAIN_TEXT)
+        with self.assertRaises(ValueError):
+            split_nodes_delimiter([node], "**", TextType.BOLD_TEXT)
 
 if __name__ == "__main__":
     unittest.main()

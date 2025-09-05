@@ -47,3 +47,44 @@ def text_node_to_html_node(text_node):
     # otherwise, raise an exception for invalid text types
     else:
         raise ValueError(f"invalid text type: {text_node.text_type}")
+
+# function to split a TextNode object by a delimiter and wrap its parts in the specified text type
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    # initialize an empty list to hold the new nodes
+    new_nodes = []
+
+    # for each node in the old nodes list
+    for node in old_nodes:
+        # if the node is not plain text, add it to the new nodes list and continue
+        if node.text_type != TextType.PLAIN_TEXT:
+            new_nodes.append(node)
+            continue
+        
+        # initialize an empty list to hold the parts of the split text (currently unused; reserved for future logic)
+        parts = []
+
+        # split the text into sections using the delimiter
+        sections = node.text.split(delimiter)
+
+        # if the number of sections is even, raise an exception with a message
+        if len(sections) % 2 == 0:
+            raise ValueError("invalid markdown, formatted section not closed")
+
+        # for each section index in the sections list
+        for i in range(len(sections)):
+            # if the section is empty, continue to the next section
+            if sections[i] == "":
+                continue
+
+            # if the index is even, create a plain text TextNode
+            if i % 2 == 0:
+                new_nodes.append(TextNode(sections[i], TextType.PLAIN_TEXT))
+            # otherwise, create a formatted TextNode
+            else:
+                new_nodes.append(TextNode(sections[i], text_type))
+
+        # extend the new nodes list with the parts list (currently unused; reserved for future logic)
+        new_nodes.extend(parts)
+
+    # return the final list of new nodes
+    return new_nodes
