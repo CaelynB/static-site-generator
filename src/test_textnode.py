@@ -1,5 +1,14 @@
 import unittest
-from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from textnode import (
+    TextNode,
+    TextType,
+    text_node_to_html_node,
+    split_nodes_delimiter,
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_image,
+    split_nodes_link
+)
 
 # unit tests for the TextNode class
 class TestTextNode(unittest.TestCase):
@@ -237,6 +246,81 @@ class TestExtractMarkdownLinks(unittest.TestCase):
         matches = extract_markdown_links("[broken](missing-parenthesis")
         expected = []
         self.assertListEqual(expected, matches)
+
+# unit tests for the split_nodes_image function
+class TestSplitNodesImage(unittest.TestCase):
+    # method to test splitting a TextNode with multiple markdown images into individual TextNodes
+    def test_multiple_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.PLAIN_TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.PLAIN_TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.PLAIN_TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png")
+            ],
+            new_nodes
+        )
+
+    # method to test splitting a TextNode with a single markdown image into a single TextNode
+    def test_single_image(self):
+        node = TextNode("![image](https://i.imgur.com/zjjcJKZ.png)", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")], new_nodes)
+
+    # method to test that a TextNode without any markdown images remains unchanged
+    def test_no_image(self):
+        node = TextNode("This is text without any images", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([node], new_nodes)
+
+    # method to test that a TextNode with malformed markdown image syntax is ignored
+    def test_malformed_image_ignored(self):
+        node = TextNode("This has a malformed ![image](https://i.imgur.com/zjjcJKZ.png", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([node], new_nodes)
+
+# unit tests for the split_nodes_link function
+class TestSplitNodesLink(unittest.TestCase):
+    # method to test splitting a TextNode with multiple markdown links into individual TextNodes
+    def test_multiple_links(self):
+        node = TextNode(
+            "This is text with a [link](https://boot.dev) and [another link](https://blog.boot.dev) with text that follows",
+            TextType.PLAIN_TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.PLAIN_TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" and ", TextType.PLAIN_TEXT),
+                TextNode("another link", TextType.LINK, "https://blog.boot.dev"),
+                TextNode(" with text that follows", TextType.PLAIN_TEXT)
+            ], 
+            new_nodes
+        )
+
+    # method to test splitting a TextNode with a single markdown link into a single TextNode
+    def test_single_link(self):
+        node = TextNode("[link](https://boot.dev)", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([TextNode("link", TextType.LINK, "https://boot.dev")], new_nodes)
+
+    # method to test that a TextNode without any markdown links remains unchanged
+    def test_no_link(self):
+        node = TextNode("This is text without any links", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([node], new_nodes)
+
+    # method to test that a TextNode with malformed markdown link syntax is ignored
+    def test_malformed_link_ignored(self):
+        node = TextNode("This is a malformed [link](https://boot.dev", TextType.PLAIN_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([node], new_nodes)
 
 if __name__ == "__main__":
     unittest.main()
