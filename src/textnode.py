@@ -205,3 +205,26 @@ def split_nodes_link(old_nodes):
 
     # return the final list of new nodes
     return new_nodes
+
+# function to convert a string of markdown-formatted text into a list of TextNode objects with appropriate formatting
+def text_to_textnodes(text):
+    # start with a single plain text TextNode
+    nodes = [TextNode(text, TextType.PLAIN_TEXT)]
+
+    # split and convert bold markdown (**bold**)
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD_TEXT)
+
+    # split and convert italic markdown (_italic_)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC_TEXT)
+
+    # split and convert code markdown (`code`)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE_TEXT)
+
+    # split and convert image markdown (![alt text](url))
+    nodes = split_nodes_image(nodes)
+
+    # split and convert link markdown ([text](url))
+    nodes = split_nodes_link(nodes)
+
+    # return the final list of formatted TextNode objects
+    return nodes

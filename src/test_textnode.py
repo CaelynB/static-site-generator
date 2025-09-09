@@ -7,7 +7,8 @@ from textnode import (
     extract_markdown_images,
     extract_markdown_links,
     split_nodes_image,
-    split_nodes_link
+    split_nodes_link,
+    text_to_textnodes
 )
 
 # unit tests for the TextNode class
@@ -321,6 +322,110 @@ class TestSplitNodesLink(unittest.TestCase):
         node = TextNode("This is a malformed [link](https://boot.dev", TextType.PLAIN_TEXT)
         new_nodes = split_nodes_link([node])
         self.assertListEqual([node], new_nodes)
+
+# unit tests for the text_to_textnodes function
+class TestTextToTextNodes(unittest.TestCase):
+    # method to test conversion of plain text into a list of TextNode objects
+    def test_plain_text_only(self):
+        nodes = text_to_textnodes("This is plain text")
+        self.assertListEqual([TextNode("This is plain text", TextType.PLAIN_TEXT)], nodes)
+
+    # method to test conversion of bold markdown text into a list of TextNode objects
+    def test_bold_only(self):
+        nodes = text_to_textnodes("This is **bold** text")
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.PLAIN_TEXT),
+                TextNode("bold", TextType.BOLD_TEXT),
+                TextNode(" text", TextType.PLAIN_TEXT)
+            ],
+            nodes
+        )
+
+    # method to test conversion of italic markdown text into a list of TextNode objects
+    def test_italic_only(self):
+        nodes = text_to_textnodes("This is _italic_ text")
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.PLAIN_TEXT),
+                TextNode("italic", TextType.ITALIC_TEXT),
+                TextNode(" text", TextType.PLAIN_TEXT)
+            ],
+            nodes
+        )
+    
+    # method to test conversion of code markdown text into a list of TextNode objects
+    def test_code_only(self):
+        nodes = text_to_textnodes("This is `code` text")
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.PLAIN_TEXT),
+                TextNode("code", TextType.CODE_TEXT),
+                TextNode(" text", TextType.PLAIN_TEXT)
+            ],
+            nodes
+        )
+
+    # method to test conversion of image markdown syntax into a list of TextNode objects
+    def test_image_only(self):
+        nodes = text_to_textnodes("This is an ![image](https://i.imgur.com/zjjcJKZ.png)")
+        self.assertListEqual(
+            [
+                TextNode("This is an ", TextType.PLAIN_TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")
+            ],
+            nodes
+        )
+
+    # method to test conversion of link markdown syntax into a list of TextNode objects
+    def test_link_only(self):
+        nodes = text_to_textnodes("This is a [link](https://boot.dev)")
+        self.assertListEqual(
+            [
+                TextNode("This is a ", TextType.PLAIN_TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev")
+            ],
+            nodes
+        )
+
+    # method to test conversion of mixed markdown syntax into a list of TextNode objects
+    def test_mixed_markdown(self):
+        nodes = text_to_textnodes(
+            "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.PLAIN_TEXT),
+                TextNode("text", TextType.BOLD_TEXT),
+                TextNode(" with an ", TextType.PLAIN_TEXT),
+                TextNode("italic", TextType.ITALIC_TEXT),
+                TextNode(" word and a ", TextType.PLAIN_TEXT),
+                TextNode("code block", TextType.CODE_TEXT),
+                TextNode(" and an ", TextType.PLAIN_TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.PLAIN_TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            nodes
+        )
+
+    # method to test that unclosed bold markdown syntax raises a ValueError
+    def test_unclosed_bold(self):
+        text = "This is **not closed"
+        with self.assertRaises(ValueError):
+                text_to_textnodes(text)
+
+    # method to test that unclosed italic markdown syntax raises a ValueError
+    def test_unclosed_italic(self):
+        text = "Some _italic text"
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
+
+    # method to test that unclosed code markdown syntax raises a ValueError
+    def test_unclosed_code(self):
+        text = "Broken `code"
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
 
 if __name__ == "__main__":
     unittest.main()
