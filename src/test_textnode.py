@@ -1,4 +1,5 @@
 import unittest
+import textwrap
 from textnode import (
     TextNode,
     TextType,
@@ -8,7 +9,8 @@ from textnode import (
     extract_markdown_links,
     split_nodes_image,
     split_nodes_link,
-    text_to_textnodes
+    text_to_textnodes,
+    markdown_to_blocks
 )
 
 # unit tests for the TextNode class
@@ -426,6 +428,89 @@ class TestTextToTextNodes(unittest.TestCase):
         text = "Broken `code"
         with self.assertRaises(ValueError):
             text_to_textnodes(text)
+
+# unit tests for the markdown_to_blocks function
+class TestMarkdownToBlocks(unittest.TestCase):
+        # method to test conversion of a markdown string into a list of block strings
+        def test_markdown_to_blocks(self):
+            md = textwrap.dedent("""\
+                This is **bolded** paragraph
+
+                This is another paragraph with _italic_ text and `code` here
+                This is the same paragraph on a new line
+
+                - This is a list
+                - with items
+            """)
+            blocks = markdown_to_blocks(md)
+            self.assertEqual(
+                blocks,
+                [
+                    "This is **bolded** paragraph",
+                    "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                    "- This is a list\n- with items"
+                ]
+            )
+
+        # method to test conversion of a markdown string with multiple newlines into a list of block strings
+        def test_markdown_to_blocks_newlines(self):
+            md = textwrap.dedent("""\
+                This is **bolded** paragraph
+
+                This is another paragraph with _italic_ text and `code` here
+                This is the same paragraph on a new line
+
+
+
+
+                - This is a list
+                - with items
+            """)
+            blocks = markdown_to_blocks(md)
+            self.assertEqual(
+                blocks,
+                [
+                    "This is **bolded** paragraph",
+                    "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                    "- This is a list\n- with items"
+                ]
+            )
+
+        # method to test that basic paragraphs are correctly split into separate blocks
+        def test_basic_paragraphs(self):
+            md = "This is a paragraph\n\nThis is another paragraph"
+            blocks = markdown_to_blocks(md)
+            self.assertEqual(
+                blocks,
+                [
+                    "This is a paragraph",
+                    "This is another paragraph"
+                ]
+            )
+
+        # method to test that multiple consecutive newlines are treated as a single paragraph break
+        def test_extra_newlines(self):
+            md = "This is a paragraph\n\n\n\nThis is another paragraph"
+            blocks = markdown_to_blocks(md)
+            self.assertEqual(
+                blocks,
+                [
+                    "This is a paragraph",
+                    "This is another paragraph"
+                ]
+            )
+
+        # method to test that leading and trailing whitespace is trimmed from each block
+        def test_trims_whitespace(self):
+            md = "   This is a paragraph   \n\n   This is another paragraph   "
+            blocks = markdown_to_blocks(md)
+            self.assertEqual(
+                blocks,
+                [
+                    "This is a paragraph",
+                    "This is another paragraph"
+                ]
+            )
 
 if __name__ == "__main__":
     unittest.main()

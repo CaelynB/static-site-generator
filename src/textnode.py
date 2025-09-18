@@ -228,3 +228,20 @@ def text_to_textnodes(text):
 
     # return the final list of formatted TextNode objects
     return nodes
+
+# function to convert a markdown string into a list of block strings
+def markdown_to_blocks(markdown):
+    # split the markdown into lines
+    lines = markdown.split("\n\n")
+
+    # initialize an empty list to hold the block strings
+    blocks = []
+
+    # for each line in the lines list
+    for line in lines:
+        # if the line is not empty, add it to the blocks list
+        if line.strip() != "":
+            blocks.append(line.strip())
+
+    # return the final list of block strings
+    return blocks
